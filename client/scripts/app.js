@@ -34,10 +34,10 @@ app.fetch = function(){
     contentType: 'application/json',
     success: function (data) {
       app.addSelector(data);            //add selector choice on load after fetch
-      app.postMessages(data);
+      // app.postMessages(data);
       var datum = data;
-      console.log(datum)
-      console.log(data)
+      // console.log(datum)
+      // console.log(data)
       console.log('chatterbox: Message sent');
 
     },
@@ -54,7 +54,8 @@ app.addMessage =function(message){
    var $post = $('<div class= chat>@'+ message.username + ' ' + message.text + '</div>')
    $("#chats").append($post)
    app.send(message);
-   console.log(message)
+   console.log(message.roomname);
+   console.log(app.fetch());
 }
 
 
@@ -63,10 +64,12 @@ app.clearMessages = function(){
 }
 
 
-app.postMessages = function(data){                    //posts messages from data called by app.fetch (refactor?)
-   for(var i=0; i< data.results.length; i++){
+app.postMessages = function(data){
+  console.log(data, "now posting")                    //posts messages from data called by app.fetch (refactor?)
+   // console.log(data.responseJSON.results.length, "helloooo")
+   for(var i=0; i< data.length; i++){
    var $chat = '<div class=chat>' +
-        data.results[i].username + " " + data.results[i].text + "</div>";
+        data[i].username + " " + data[i].text + " "+ data[i].createdAt+"</div>";
           $('#chats').append($chat);
          console.log($chat)
        }
@@ -87,26 +90,27 @@ app.addSelector = function(data){                //posts room from data called b
   }
 }
 
-
+var currentRoom = "yo yo yo"
 
  var message = {
   username: window.location.search.substr(10),
   text: undefined,
-  roomname: "yo yo yo"
+  roomname: currentRoom
   }
 
-
+ var totalPosts = app.fetch();
 $(document).ready(function(){
 
-// var totalPosts = app.fetch();
 
 $('select').on('change',function(){
   var currentRoom  = $(this).val()
+  console.log(currentRoom)
   app.clearMessages();
   // var fetchObj = app.fetch(); //gets AJAX object
-  var directData = fetchObj.responseJSON.results //gets AJAX results
-  var rooms = _.filter(directData, function(datum){
-    return datum === currentRoom;
+  // var directData = fetchObj.responseJSON.results //gets AJAX results
+  console.log(totalPosts, 'jon')
+  var rooms = _.filter(totalPosts.responseJSON.results, function(datum){
+    return datum.roomname === currentRoom;
   })
    app.postMessages(rooms);
 })
@@ -114,8 +118,9 @@ $('select').on('change',function(){
 
 $("#input").on('click', function(){
     message.text = $("input").val()
-    // message.roomname = currentRoom;
-    app.addMessage(message)
+    console.log('clicked', message);
+    message.roomname = currentRoom;
+    app.addMessage(message);
     console.log(message.text)
 })
 
@@ -125,9 +130,12 @@ $("#clear").on("click", function(){
 })
 
 $("#newMessages").on('click', function(){
-  // app.fetch();
-  // app.postMessages(totalPosts.responseJSON);
-  console.log('clicked')
+
+  console.log(totalPosts)
+  var posted = totalPosts.responseJSON.results;
+  console.log("hi", posted);
+  app.postMessages(posted);
+  console.log('clicked');
 })
 
 
