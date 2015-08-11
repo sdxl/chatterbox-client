@@ -26,14 +26,18 @@ app.send = function(message){
 };
 
 app.fetch = function(){
-  $.ajax({
+
+  var fetchedObj = $.ajax({
     url: app.server,
     type: 'GET',
     data: JSON.stringify(message),
     contentType: 'application/json',
     success: function (data) {
-      app.postMessages(data);        //add messages on load after fetch
       app.addSelector(data);            //add selector choice on load after fetch
+      app.postMessages(data);
+      var datum = data;
+      console.log(datum)
+      console.log(data)
       console.log('chatterbox: Message sent');
 
     },
@@ -41,12 +45,13 @@ app.fetch = function(){
     console.error('chatterbox: Failed to send message');
   }
 });
+  return fetchedObj;
 }
 
 
 app.addMessage =function(message){
   //gets txt property, appends to chat box
-   var $post = $('<div class= chatText>@'+message.username+ ' ' + message.text + '</div>')
+   var $post = $('<div class= chat>@'+ message.username + ' ' + message.text + '</div>')
    $("#chats").append($post)
    app.send(message);
    console.log(message)
@@ -60,7 +65,7 @@ app.clearMessages = function(){
 
 app.postMessages = function(data){                    //posts messages from data called by app.fetch (refactor?)
    for(var i=0; i< data.results.length; i++){
-   var $chat = '<div class=chatText>' +
+   var $chat = '<div class=chat>' +
         data.results[i].username + " " + data.results[i].text + "</div>";
           $('#chats').append($chat);
          console.log($chat)
@@ -93,14 +98,23 @@ app.addSelector = function(data){                //posts room from data called b
 
 $(document).ready(function(){
 
-$('option').on('change',function(){
-  var currentRoom  = $(this).val();
+// var totalPosts = app.fetch();
+
+$('select').on('change',function(){
+  var currentRoom  = $(this).val()
+  app.clearMessages();
+  // var fetchObj = app.fetch(); //gets AJAX object
+  var directData = fetchObj.responseJSON.results //gets AJAX results
+  var rooms = _.filter(directData, function(datum){
+    return datum === currentRoom;
+  })
+   app.postMessages(rooms);
 })
 
 
 $("#input").on('click', function(){
     message.text = $("input").val()
-    message.roomname = currentRoom
+    // message.roomname = currentRoom;
     app.addMessage(message)
     console.log(message.text)
 })
@@ -111,7 +125,8 @@ $("#clear").on("click", function(){
 })
 
 $("#newMessages").on('click', function(){
-  app.fetch();
+  // app.fetch();
+  // app.postMessages(totalPosts.responseJSON);
   console.log('clicked')
 })
 
